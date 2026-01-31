@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.2.0
+
+### Minor Changes
+
+- Add getRun method to Workflow class to retrieve specific run states by ID
+
 ## 1.1.3
 
 ### Patch Changes

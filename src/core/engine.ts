@@ -158,6 +158,14 @@ export class Workflow<
     );
   }
 
+  /**
+   * Retrieves the current state of a specific run
+   */
+  async getRun(runId: string): Promise<WorkflowRunState<TInput, TState> | null> {
+    const runState = await this.storage.getRun(runId);
+    return runState as WorkflowRunState<TInput, TState> | null;
+  }
+
   listIncomplete(): Promise<
     WorkflowRunState<unknown, Record<string, unknown>>[]
   > {
