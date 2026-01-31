@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.2.1
+
+### Patch Changes
+
+- Refine CI/CD pipeline configuration to resolve pnpm version conflicts and ensure stable automated
+
 ## 1.2.0
 
 ### Minor Changes
