@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.1.3
+
+### Patch Changes
+
+- Add repository, bugs, homepage and exports
+
 ## 1.1.2
 
 ### Patch Changes
