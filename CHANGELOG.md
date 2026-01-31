@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.3.0
+
+### Minor Changes
+
+- 28ee926: Add clearIncomplete method to Workflow class
+
 ## 1.2.2
 
 ### Patch Changes
