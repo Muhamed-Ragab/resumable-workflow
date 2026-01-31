@@ -198,7 +198,9 @@ export class Workflow<
     // For now, we'll implement a safe cleanup.
     for (const run of incomplete) {
       const filePath = path.join('.resumable-workflow', `${run.runId}.json`);
-      await fs.unlink(filePath).catch(() => {});
+      await fs.unlink(filePath).catch(() => {
+        // Ignore if file doesn't exist or cannot be deleted
+      });
     }
   }
 }

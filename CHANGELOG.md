@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.3.1
+
+### Patch Changes
+
+- resolve linting error in clearIncomplete method
+
 ## 1.3.0
 
 ### Minor Changes
