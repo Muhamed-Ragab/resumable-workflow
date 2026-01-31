@@ -60,7 +60,10 @@ export class FileStorage implements StorageProvider {
             unknown,
             Record<string, unknown>
           >;
-          if (run.workflowId === workflowId && run.status === 'pending') {
+          if (
+            run.workflowId === workflowId &&
+            (run.status === 'pending' || run.status === 'failed')
+          ) {
             runs.push(run);
           }
         }
