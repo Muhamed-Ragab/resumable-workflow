@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.2.2
+
+### Patch Changes
+
+- 5cbcb0a: Sync CI/CD pipeline with official changesets action
+
 ## 1.2.1
 
 ### Patch Changes
