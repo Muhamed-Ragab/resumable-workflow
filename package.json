@@ -1,0 +1,42 @@
+{
+  "name": "resumable-workflow",
+  "version": "1.0.0",
+  "description": "A lightweight, persistent workflow engine for Node.js. Ensure multi-step processes survive crashes and resume automatically.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsup",
+    "lint": "biome lint .",
+    "format": "biome format . --write",
+    "check": "biome check --write .",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
+  },
+  "keywords": [
+    "workflow",
+    "resumable",
+    "persistent",
+    "checkpoint",
+    "saga",
+    "state-machine",
+    "reliability",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "Mohamed Ragab",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.13",
+    "@changesets/cli": "^2.29.8",
+    "@types/node": "22.13.1",
+    "tsup": "8.5.1",
+    "typescript": "5.7.3",
+    "ultracite": "7.1.1",
+    "vitest": "3.0.5"
+  }
+}
