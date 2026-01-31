@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.1.1
+
+### Patch Changes
+
+- Reset status to pending when resuming"… │
+
 ## 1.1.0
 
 ### Minor Changes

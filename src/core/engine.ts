@@ -96,6 +96,11 @@ export class Workflow<
         state: {} as TState,
       };
 
+    // If resuming a failed/halted run, reset its status to pending
+    if (existingRun && existingRun.status !== 'completed') {
+      currentState.status = 'pending';
+    }
+
     if (!existingRun) {
       await this.storage.saveRun(currentState);
     }
