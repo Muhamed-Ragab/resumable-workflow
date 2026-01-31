@@ -1,10 +1,17 @@
 {
   "name": "resumable-workflow",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A lightweight, persistent workflow engine for Node.js. Ensure multi-step processes survive crashes and resume automatically.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
@@ -17,6 +24,14 @@
     "version": "changeset version",
     "release": "pnpm build && changeset publish"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muhamed-Ragab/resumable-workflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Muhamed-Ragab/resumable-workflow/issues"
+  },
+  "homepage": "https://github.com/Muhamed-Ragab/resumable-workflow#readme",
   "keywords": [
     "workflow",
     "resumable",
