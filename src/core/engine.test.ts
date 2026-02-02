@@ -75,4 +75,56 @@ describe('Resumable Workflow', () => {
       expect(callCount).toBe(2);
     }
   });
+
+  it('should auto-cleanup run data after success when enabled', async () => {
+    const step1 = vi.fn().mockResolvedValue({ done: true });
+    const storage = new FileStorage(storageDir);
+
+    const workflow = createWorkflow({
+      id: 'cleanup-wf',
+      storage,
+      autoCleanup: true,
+      steps: [{ name: 'step1', run: step1 }],
+    });
+
+    const response = await workflow.start({});
+
+    expect(response.success).toBe(true);
+    
+    if (response.success) {
+      // Check if file exists
+      const run = await storage.getRun(response.runId);
+      expect(run).toBeNull();
+    }
+  });
+
+  it('should manually clear completed runs', async () => {
+    const step1 = vi.fn().mockResolvedValue({ done: true });
+    const storage = new FileStorage(storageDir);
+
+    const workflow = createWorkflow({
+      id: 'manual-cleanup-wf',
+      storage,
+      autoCleanup: false, // keep them first
+      steps: [{ name: 'step1', run: step1 }],
+    });
+
+    // Create two completed runs
+    const run1 = await workflow.start({ id: 1 });
+    const run2 = await workflow.start({ id: 2 });
+
+    expect(run1.success).toBe(true);
+    expect(run2.success).toBe(true);
+
+    // Verify they exist
+    const completedBefore = await storage.listCompletedRuns('manual-cleanup-wf');
+    expect(completedBefore.length).toBe(2);
+
+    // Clear them
+    await workflow.clearCompleted();
+
+    // Verify they are gone
+    const completedAfter = await storage.listCompletedRuns('manual-cleanup-wf');
+    expect(completedAfter.length).toBe(0);
+  });
 });

@@ -96,11 +96,6 @@ export class Workflow<
         state: {} as TState,
       };
 
-    // If resuming a failed/halted run, reset its status to pending
-    if (existingRun && existingRun.status !== 'completed') {
-      currentState.status = 'pending';
-    }
-
     if (!existingRun) {
       await this.storage.saveRun(currentState);
     }
@@ -122,6 +117,11 @@ export class Workflow<
           this.config.steps[currentState.currentStepIndex]?.name ||
           `step_${currentState.currentStepIndex}`,
       };
+    }
+
+    // Auto-cleanup if enabled and successful
+    if (this.config.autoCleanup) {
+      await this.storage.deleteRun(currentState.runId);
     }
 
     return {
@@ -158,14 +158,6 @@ export class Workflow<
     );
   }
 
-  /**
-   * Retrieves the current state of a specific run
-   */
-  async getRun(runId: string): Promise<WorkflowRunState<TInput, TState> | null> {
-    const runState = await this.storage.getRun(runId);
-    return runState as WorkflowRunState<TInput, TState> | null;
-  }
-
   listIncomplete(): Promise<
     WorkflowRunState<unknown, Record<string, unknown>>[]
   > {
@@ -185,23 +177,11 @@ export class Workflow<
   }
 
   /**
-   * Clears all incomplete runs for this workflow from storage.
-   * Useful for manual cleanup of stuck processes.
+   * Manually clears all completed workflow runs for this workflow ID from storage.
    */
-  async clearIncomplete(): Promise<void> {
-    const incomplete = await this.storage.listIncompleteRuns(this.workflowId);
-    const fs = await import('node:fs/promises');
-    const path = await import('node:path');
-    
-    // Note: This assumes FileStorage. For custom storage, 
-    // we should ideally add a deleteRun method to the StorageProvider interface.
-    // For now, we'll implement a safe cleanup.
-    for (const run of incomplete) {
-      const filePath = path.join('.resumable-workflow', `${run.runId}.json`);
-      await fs.unlink(filePath).catch(() => {
-        // Ignore if file doesn't exist or cannot be deleted
-      });
-    }
+  async clearCompleted(): Promise<void> {
+    const completed = await this.storage.listCompletedRuns(this.workflowId);
+    await Promise.all(completed.map((run) => this.storage.deleteRun(run.runId)));
   }
 }
 

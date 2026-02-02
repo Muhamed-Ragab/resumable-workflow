@@ -42,8 +42,21 @@ export class FileStorage implements StorageProvider {
     }
   }
 
-  async listIncompleteRuns(
+  listIncompleteRuns(
     workflowId: string
+  ): Promise<WorkflowRunState<unknown, Record<string, unknown>>[]> {
+    return this.listRuns(workflowId, 'pending');
+  }
+
+  listCompletedRuns(
+    workflowId: string
+  ): Promise<WorkflowRunState<unknown, Record<string, unknown>>[]> {
+    return this.listRuns(workflowId, 'completed');
+  }
+
+  private async listRuns(
+    workflowId: string,
+    status: 'pending' | 'completed'
   ): Promise<WorkflowRunState<unknown, Record<string, unknown>>[]> {
     try {
       await this.ensureDir();
@@ -52,26 +65,34 @@ export class FileStorage implements StorageProvider {
 
       for (const file of files) {
         if (file.endsWith('.json')) {
-          const data = await fs.readFile(
-            path.join(this.baseDir, file),
-            'utf-8'
-          );
-          const run = JSON.parse(data) as WorkflowRunState<
-            unknown,
-            Record<string, unknown>
-          >;
-          if (
-            run.workflowId === workflowId &&
-            (run.status === 'pending' || run.status === 'failed')
-          ) {
-            runs.push(run);
+          try {
+            const data = await fs.readFile(
+              path.join(this.baseDir, file),
+              'utf-8'
+            );
+            const run = JSON.parse(data) as WorkflowRunState<
+              unknown,
+              Record<string, unknown>
+            >;
+            if (run.workflowId === workflowId && run.status === status) {
+              runs.push(run);
+            }
+          } catch (_e) {
+            // Ignore corrupted files
           }
         }
       }
       return runs;
     } catch (_e) {
-      // Return empty array if directory doesn't exist or fails to read
       return [];
+    }
+  }
+
+  async deleteRun(runId: string): Promise<void> {
+    try {
+      await fs.unlink(this.getFilePath(runId));
+    } catch (_e) {
+      // Ignore if file doesn't exist
     }
   }
 }

@@ -7,6 +7,7 @@ A lightweight, framework-agnostic Node.js library to ensure multi-step processes
 - **Resumable:** Easily resume failed or interrupted runs by ID.
 - **Result Pattern:** Returns descriptive objects instead of throwing errors for better control and performance.
 - **Auto-Resume:** Optional background resumption of incomplete tasks on startup.
+- **Auto-Cleanup:** Optional automatic deletion of run data upon successful completion.
 - **Pluggable Storage:** Default file-system storage included, with interfaces for Redis or SQL.
 
 ## Architecture
@@ -29,6 +30,7 @@ import { createWorkflow } from 'resumable-workflow';
 
 const onboarding = createWorkflow({
   id: 'user-onboarding',
+  autoCleanup: true, // Optional: Automatically delete data after success
   steps: [
     {
       name: 'create-user',
@@ -37,6 +39,20 @@ const onboarding = createWorkflow({
         return { userId: '123' }; // Merged into state
       }
     },
+// ...
+  ]
+});
+
+// ...
+```
+
+### 2. Manual Cleanup
+You can also manually clear all completed runs for a workflow:
+```typescript
+await onboarding.clearCompleted();
+```
+
+### 3. Resume a Failed Run
     {
       name: 'send-welcome-email',
       run: async ({ state }) => {

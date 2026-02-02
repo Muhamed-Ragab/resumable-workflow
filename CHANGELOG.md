@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.4.0
+
+### Minor Changes
+
+- Initial release with class-based architecture, auto-cleanup, and strict typing.
+
 ## 1.3.1
 
 ### Patch Changes
