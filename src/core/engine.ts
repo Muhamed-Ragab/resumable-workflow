@@ -181,7 +181,9 @@ export class Workflow<
    */
   async clearCompleted(): Promise<void> {
     const completed = await this.storage.listCompletedRuns(this.workflowId);
-    await Promise.all(completed.map((run) => this.storage.deleteRun(run.runId)));
+    await Promise.all(
+      completed.map((run) => this.storage.deleteRun(run.runId))
+    );
   }
 }
 

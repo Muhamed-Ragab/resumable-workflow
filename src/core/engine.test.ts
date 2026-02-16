@@ -90,7 +90,7 @@ describe('Resumable Workflow', () => {
     const response = await workflow.start({});
 
     expect(response.success).toBe(true);
-    
+
     if (response.success) {
       // Check if file exists
       const run = await storage.getRun(response.runId);
@@ -117,7 +117,8 @@ describe('Resumable Workflow', () => {
     expect(run2.success).toBe(true);
 
     // Verify they exist
-    const completedBefore = await storage.listCompletedRuns('manual-cleanup-wf');
+    const completedBefore =
+      await storage.listCompletedRuns('manual-cleanup-wf');
     expect(completedBefore.length).toBe(2);
 
     // Clear them
