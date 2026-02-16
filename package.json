@@ -1,6 +1,6 @@
 {
   "name": "resumable-workflow",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A lightweight, persistent workflow engine for Node.js. Ensure multi-step processes survive crashes and resume automatically.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

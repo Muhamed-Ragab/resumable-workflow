@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.4.2
+
+### Patch Changes
+
+- Release security hardening updates for workflow logging and file storage run enumeration validation.
+
 ## 1.4.1
 
 ### Patch Changes
