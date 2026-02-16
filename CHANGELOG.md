@@ -1,5 +1,11 @@
 # resumable-workflow
 
+## 1.4.1
+
+### Patch Changes
+
+- Add comprehensive path-traversal prevention tests for `FileStorage`, including multiple traversal vectors and validation coverage for save/get/delete operations.
+
 ## 1.4.0
 
 ### Minor Changes
