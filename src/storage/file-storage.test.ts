@@ -265,5 +265,89 @@ describe('FileStorage', () => {
         expect(run?.input).toEqual({ id: i });
       });
     });
+
+    it('should ignore JSON files that do not match run-id filename pattern', async () => {
+      const storage = new FileStorage(storageDir);
+      await fs.mkdir(storageDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(storageDir, 'valid-run.json'),
+        JSON.stringify({
+          workflowId: 'test-workflow',
+          runId: 'valid-run',
+          status: 'pending',
+          currentStepIndex: 0,
+          input: {},
+          state: {},
+        })
+      );
+      await fs.writeFile(
+        path.join(storageDir, 'invalid.run.json'),
+        JSON.stringify({
+          workflowId: 'test-workflow',
+          runId: 'valid-run',
+          status: 'pending',
+          currentStepIndex: 0,
+          input: {},
+          state: {},
+        })
+      );
+
+      const runs = await storage.listIncompleteRuns('test-workflow');
+      expect(runs).toHaveLength(1);
+      expect(runs[0].runId).toBe('valid-run');
+    });
+
+    it('should ignore JSON files with invalid run state shape', async () => {
+      const storage = new FileStorage(storageDir);
+      await fs.mkdir(storageDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(storageDir, 'shape-valid.json'),
+        JSON.stringify({
+          workflowId: 'test-workflow',
+          runId: 'shape-valid',
+          status: 'pending',
+          currentStepIndex: 0,
+          input: {},
+          state: {},
+        })
+      );
+      await fs.writeFile(
+        path.join(storageDir, 'shape-invalid.json'),
+        JSON.stringify({
+          workflowId: 'test-workflow',
+          runId: 'shape-invalid',
+          status: 'pending',
+          currentStepIndex: -1,
+          input: {},
+          state: {},
+        })
+      );
+
+      const runs = await storage.listIncompleteRuns('test-workflow');
+      expect(runs).toHaveLength(1);
+      expect(runs[0].runId).toBe('shape-valid');
+    });
+
+    it('should ignore JSON files when filename runId and payload runId differ', async () => {
+      const storage = new FileStorage(storageDir);
+      await fs.mkdir(storageDir, { recursive: true });
+
+      await fs.writeFile(
+        path.join(storageDir, 'expected-run.json'),
+        JSON.stringify({
+          workflowId: 'test-workflow',
+          runId: 'different-run',
+          status: 'pending',
+          currentStepIndex: 0,
+          input: {},
+          state: {},
+        })
+      );
+
+      const runs = await storage.listIncompleteRuns('test-workflow');
+      expect(runs).toHaveLength(0);
+    });
   });
 });

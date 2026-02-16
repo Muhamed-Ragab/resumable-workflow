@@ -52,6 +52,44 @@ export class FileStorage implements StorageProvider {
     return resolvedPath;
   }
 
+  private isValidRunFileName(fileName: string): boolean {
+    if (!fileName.endsWith('.json')) {
+      return false;
+    }
+
+    const runId = fileName.slice(0, -'.json'.length);
+    return RUN_ID_PATTERN.test(runId);
+  }
+
+  private isValidWorkflowStatus(
+    value: unknown
+  ): value is 'pending' | 'completed' | 'failed' {
+    return value === 'pending' || value === 'completed' || value === 'failed';
+  }
+
+  private isValidRunStateShape(
+    run: unknown
+  ): run is WorkflowRunState<unknown, Record<string, unknown>> {
+    if (typeof run !== 'object' || run === null || Array.isArray(run)) {
+      return false;
+    }
+
+    const candidate = run as Record<string, unknown>;
+    return (
+      typeof candidate.workflowId === 'string' &&
+      typeof candidate.runId === 'string' &&
+      RUN_ID_PATTERN.test(candidate.runId) &&
+      this.isValidWorkflowStatus(candidate.status) &&
+      typeof candidate.currentStepIndex === 'number' &&
+      Number.isInteger(candidate.currentStepIndex) &&
+      candidate.currentStepIndex >= 0 &&
+      'input' in candidate &&
+      typeof candidate.state === 'object' &&
+      candidate.state !== null &&
+      !Array.isArray(candidate.state)
+    );
+  }
+
   async saveRun(
     state: WorkflowRunState<unknown, Record<string, unknown>>
   ): Promise<void> {
@@ -110,22 +148,27 @@ export class FileStorage implements StorageProvider {
       const runs: WorkflowRunState<unknown, Record<string, unknown>>[] = [];
 
       for (const file of files) {
-        if (file.endsWith('.json')) {
-          try {
-            const data = await fs.readFile(
-              path.join(this.baseDir, file),
-              'utf-8'
-            );
-            const run = JSON.parse(data) as WorkflowRunState<
-              unknown,
-              Record<string, unknown>
-            >;
-            if (run.workflowId === workflowId && run.status === status) {
-              runs.push(run);
-            }
-          } catch (_e) {
-            // Ignore corrupted files
+        if (!this.isValidRunFileName(file)) {
+          continue;
+        }
+
+        try {
+          const data = await fs.readFile(path.join(this.baseDir, file), 'utf-8');
+          const run = JSON.parse(data) as unknown;
+
+          if (!this.isValidRunStateShape(run)) {
+            continue;
           }
+
+          if (run.runId !== file.slice(0, -'.json'.length)) {
+            continue;
+          }
+
+          if (run.workflowId === workflowId && run.status === status) {
+            runs.push(run);
+          }
+        } catch (_e) {
+          // Ignore corrupted files
         }
       }
       return runs;
