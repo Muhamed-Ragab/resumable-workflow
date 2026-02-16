@@ -13,8 +13,35 @@ export class FileStorage implements StorageProvider {
     await fs.mkdir(this.baseDir, { recursive: true });
   }
 
+  private validateRunId(runId: string): void {
+    if (!runId || typeof runId !== 'string') {
+      throw new Error(`Invalid runId: ${runId}`);
+    }
+    
+    // Check for path traversal attempts
+    if (runId.includes('../') || runId.includes('..\\') || runId.startsWith('..')) {
+      throw new Error(`Invalid runId: Path traversal detected in ${runId}`);
+    }
+    
+    // Additional validation: only allow alphanumeric, hyphens, and underscores
+    if (!/^[a-zA-Z0-9_-]+$/.test(runId)) {
+      throw new Error(`Invalid runId: Only alphanumeric characters, hyphens, and underscores are allowed in ${runId}`);
+    }
+  }
+
   private getFilePath(runId: string): string {
-    return path.join(this.baseDir, `${runId}.json`);
+    this.validateRunId(runId);
+    const filePath = path.join(this.baseDir, `${runId}.json`);
+    
+    // Additional security check: ensure the resolved path is within the base directory
+    const resolvedPath = path.resolve(filePath);
+    const resolvedBaseDir = path.resolve(this.baseDir);
+    
+    if (!resolvedPath.startsWith(resolvedBaseDir)) {
+      throw new Error(`Invalid runId: Path traversal detected`);
+    }
+    
+    return resolvedPath;
   }
 
   async saveRun(
@@ -30,13 +57,21 @@ export class FileStorage implements StorageProvider {
   async getRun(
     runId: string
   ): Promise<WorkflowRunState<unknown, Record<string, unknown>> | null> {
+    // Validate runId first before attempting file operations
+    this.validateRunId(runId);
+    
     try {
       const data = await fs.readFile(this.getFilePath(runId), 'utf-8');
       return JSON.parse(data) as WorkflowRunState<
         unknown,
         Record<string, unknown>
       >;
-    } catch (_e) {
+    } catch (e) {
+      // Only return null for file system errors, not validation errors
+      // If it's a validation error, it should have been caught by validateRunId
+      if ((e as Error).message.includes('Invalid runId') || (e as Error).message.includes('Path traversal')) {
+        throw e; // Re-throw validation errors
+      }
       // Return null if file doesn't exist or is invalid
       return null;
     }
@@ -89,9 +124,16 @@ export class FileStorage implements StorageProvider {
   }
 
   async deleteRun(runId: string): Promise<void> {
+    // Validate runId first before attempting file operations
+    this.validateRunId(runId);
+    
     try {
       await fs.unlink(this.getFilePath(runId));
-    } catch (_e) {
+    } catch (e) {
+      // Only ignore file system errors, not validation errors
+      if ((e as Error).message.includes('Invalid runId') || (e as Error).message.includes('Path traversal')) {
+        throw e; // Re-throw validation errors
+      }
       // Ignore if file doesn't exist
     }
   }
