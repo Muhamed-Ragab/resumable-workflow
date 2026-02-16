@@ -27,10 +27,7 @@ export class Workflow<
 
     if (config.autoResume) {
       this.resumeAllIncomplete().catch((err) => {
-        console.error(
-          `[ResumableWorkflow: ${this.workflowId}] Auto-resume failed:`,
-          err
-        );
+        console.error('[ResumableWorkflow] Auto-resume failed:', err);
       });
     }
   }

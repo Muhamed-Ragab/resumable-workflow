@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FileStorage } from '../storage/file-storage';
+import type { StorageProvider, WorkflowRunState } from '../types';
 import { createWorkflow } from './engine';
 
 describe('Resumable Workflow', () => {
@@ -127,5 +128,59 @@ describe('Resumable Workflow', () => {
     // Verify they are gone
     const completedAfter = await storage.listCompletedRuns('manual-cleanup-wf');
     expect(completedAfter.length).toBe(0);
+  });
+
+  it('should avoid logging workflowId when auto-resume fails', async () => {
+    const sensitiveWorkflowId = 'customer-secret-workflow';
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    const failingStorage: StorageProvider = {
+      saveRun(
+        _state: WorkflowRunState<unknown, Record<string, unknown>>
+      ): Promise<void> {
+        return Promise.resolve();
+      },
+      getRun(
+        _runId: string
+      ): Promise<WorkflowRunState<unknown, Record<string, unknown>> | null> {
+        return Promise.resolve(null);
+      },
+      listIncompleteRuns(): Promise<
+        WorkflowRunState<unknown, Record<string, unknown>>[]
+      > {
+        throw new Error('storage failure');
+      },
+      listCompletedRuns(): Promise<
+        WorkflowRunState<unknown, Record<string, unknown>>[]
+      > {
+        return Promise.resolve([]);
+      },
+      deleteRun(_runId: string): Promise<void> {
+        return Promise.resolve();
+      },
+    };
+
+    createWorkflow({
+      id: sensitiveWorkflowId,
+      autoResume: true,
+      storage: failingStorage,
+      steps: [{ name: 'noop', run: async () => ({}) }],
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[ResumableWorkflow] Auto-resume failed:',
+      expect.any(Error)
+    );
+    const loggedText = consoleErrorSpy.mock.calls
+      .flat()
+      .map((value) => String(value))
+      .join(' ');
+    expect(loggedText).not.toContain(sensitiveWorkflowId);
+
+    consoleErrorSpy.mockRestore();
   });
 });
