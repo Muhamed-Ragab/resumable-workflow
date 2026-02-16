@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { StorageProvider, WorkflowRunState } from '../types';
 
+const RUN_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
 export class FileStorage implements StorageProvider {
   private readonly baseDir: string;
 
@@ -24,7 +26,7 @@ export class FileStorage implements StorageProvider {
     }
     
     // Additional validation: only allow alphanumeric, hyphens, and underscores
-    if (!/^[a-zA-Z0-9_-]+$/.test(runId)) {
+    if (!RUN_ID_PATTERN.test(runId)) {
       throw new Error(`Invalid runId: Only alphanumeric characters, hyphens, and underscores are allowed in ${runId}`);
     }
   }
@@ -38,7 +40,7 @@ export class FileStorage implements StorageProvider {
     const resolvedBaseDir = path.resolve(this.baseDir);
     
     if (!resolvedPath.startsWith(resolvedBaseDir)) {
-      throw new Error(`Invalid runId: Path traversal detected`);
+      throw new Error('Invalid runId: Path traversal detected');
     }
     
     return resolvedPath;
